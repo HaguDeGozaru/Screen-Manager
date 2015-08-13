@@ -1,0 +1,11 @@
+{     
+  "name": "screenManager",   
+  "url" : "https://github.com/CreativeMagic/Screen-Manager",  
+  "license": "MIT",  
+  "tags": ["OpenFL", "Flash", "Android", "iOS", "native", "tool", "screen"],  
+   "description": "A framework to create and manage screens in your apps",  
+   "version": "0.9.0",    
+   "releasenote": "Currently in beta testing. Most features work well",    
+   "contributors": ["CreativeMagic"],    
+   "dependencies": {"openfl" : ""} 
+}
