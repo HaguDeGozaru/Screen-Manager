@@ -3,11 +3,14 @@ package com.creativemage.screenManager;
 import com.creativemage.screenManager.AScreen;
 import flash.display.DisplayObjectContainer;
 import com.creativemage.screenManager.transaction.AScreenTransaction;
+import openfl.events.Event;
+import openfl.Lib;
 
 /**
  * ...
  * @author Creative Magic
  */
+@:access( com.creativemage.screenManager )
 class ScreenManager
 {
 	private var targetDisplayObjectContainer:DisplayObjectContainer;
@@ -33,6 +36,7 @@ class ScreenManager
 		targetDisplayObjectContainer = targetContainer;
 		
 		screenClassList = (predefinedScreenList == null) ? new AScreenList() : predefinedScreenList;
+		
 	}
 	
 	// PUBLIC METHODS
@@ -42,6 +46,8 @@ class ScreenManager
 		currentScreen = createScreenInstance( screenClassList.getClassByID(startScreenID) );
 		targetDisplayObjectContainer.addChild(currentScreen);
 		currentScreen.onInit();
+		
+		Lib.current.stage.addEventListener( Event.RESIZE, onStageResize );
 	}
 	
 	public function gotoScreenByID(screenID:Int, ?transition:AScreenTransaction, transactionTime:Int = 0, useHistory:Bool = true):Void
@@ -76,6 +82,7 @@ class ScreenManager
 	
 	function disposeOfCurrentScreen() 
 	{
+		currentScreen.onRemove();
 		currentScreen.removeAllListenerObjects();
 		targetDisplayObjectContainer.removeChild(currentScreen);
 		currentScreen = null;
@@ -143,6 +150,16 @@ class ScreenManager
 				currentTransition.init(true);
 			}
 		}
+	}
+	
+	// EVENT HANDLERS
+	
+	private function onStageResize(e:Event):Void 
+	{
+		if (currentScreen == null)
+			return;
+		
+		currentScreen.onResize();
 	}
 	
 }      
