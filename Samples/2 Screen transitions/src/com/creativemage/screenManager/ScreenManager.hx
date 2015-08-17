@@ -1,8 +1,10 @@
 package com.creativemage.screenManager;
 
 import com.creativemage.screenManager.AScreen;
+import com.creativemage.screenManager.history.ScreenHistory;
+import com.creativemage.screenManager.transitionEffect.AScreenTransition;
+import com.creativemage.screenManager.transitionEffect.ScreenTransitionManager;
 import flash.display.DisplayObjectContainer;
-import com.creativemage.screenManager.transaction.AScreenTransaction;
 import openfl.events.Event;
 import openfl.Lib;
 
@@ -13,20 +15,21 @@ import openfl.Lib;
 @:access( com.creativemage.screenManager )
 class ScreenManager
 {
-	private var targetDisplayObjectContainer:DisplayObjectContainer;
+	public var targetDisplayObjectContainer(default, null):DisplayObjectContainer;
 	
-	private var width:Int;
-	private var height:Int;
+	public var width(default, set):Int;
+	public var height(default, set):Int;
 	
 	private var currentScreen:AScreen;
 	
 	private var inited:Bool = false;
 	
-	private var historyIDArray:Array<Int> = [];
 	private var screenClassList:AScreenList;
 	
-	private var currentTransition:AScreenTransaction;
-	var t:haxe.Timer;
+	private var screenTransitionManager:ScreenTransitionManager;
+	private var screenHistory:ScreenHistory;
+	
+	public var defaultScreenTransition:AScreenTransition;
 
 	public function new(targetContainer:DisplayObjectContainer, frameWidth:Int, frameHeight:Int, ?predefinedScreenList:AScreenList) 
 	{
@@ -37,119 +40,120 @@ class ScreenManager
 		
 		screenClassList = (predefinedScreenList == null) ? new AScreenList() : predefinedScreenList;
 		
-	}
-	
-	// PUBLIC METHODS
-	
-	public function init(startScreenID:Int = 0):Void
-	{
-		currentScreen = createScreenInstance( screenClassList.getClassByID(startScreenID) );
-		targetDisplayObjectContainer.addChild(currentScreen);
-		currentScreen.onInit();
+		screenTransitionManager = new ScreenTransitionManager();
+		screenTransitionManager.screenManager = this;
 		
-		Lib.current.stage.addEventListener( Event.RESIZE, onStageResize );
+		screenHistory = new ScreenHistory();
 	}
 	
-	public function gotoScreenByID(screenID:Int, ?transition:AScreenTransaction, transactionTime:Int = 0, useHistory:Bool = true):Void
-	{
-		var nextScreenClass:Class<AScreen> = screenClassList.getClassByID(screenID);
-		gotoScreen(nextScreenClass, screenClassList.lastSelectedID, transition, transactionTime);
+	// INITIALIZATION
+	
+	public function init(startScreenID:Int = 0, listenToResizeEvents:Bool = true, ?defaultTransitionEffect:AScreenTransition):Void
+	{		
+		currentScreen = createScreenInstance( screenClassList.getClassByID(startScreenID) );
+		activateScreen( currentScreen );
+		
+		defaultScreenTransition = defaultTransitionEffect;
+		
+		if (listenToResizeEvents == true)
+			Lib.current.stage.addEventListener( Event.RESIZE, onStageResize );
+			
+		//screenHistory.writeToHistory( startScreenID );
 	}
 	
-	public function gotoScreenByName(screenName:String, ?transition:AScreenTransaction, transactionTime:Int = 0, useHistory:Bool = true):Void
-	{
-		var nextScreenClass:Class<AScreen> = screenClassList.getClassByName(screenName);
-		gotoScreen(nextScreenClass, screenClassList.lastSelectedID, transition, transactionTime);
-	}
+	// SCREEN LIST
 	
 	public function addScreenClass(screenClass:Class<AScreen>, screenName:String) 
 	{
 		screenClassList.push(screenName, screenClass);
 	}
 	
-	//TODO: test this
-	public function goBack():Void
+	
+	// SCREEN NAVIGATION & HISTORY
+	
+	public function gotoScreenById(screenID:Int, ?transition:AScreenTransition):Void
 	{
-		if (historyIDArray.length == 1)
+		var screenClass = screenClassList.getClassByID( screenID );
+		
+		if (screenClass == null)
 			return;
-			
-		var targetScreenID:Int = historyIDArray[historyIDArray.length - 2];
-		historyIDArray.splice(historyIDArray.length - 1, 1);
-		gotoScreenByID(targetScreenID, null, 0, false);
+		
+		screenTransitionManager.gotoScreen( screenClass, transition );
 	}
 	
-	// PRIVATE METHODS
+	public function gotoScreenByName(screenName:String, ?transition:AScreenTransition):Void
+	{
+		var screenClass = screenClassList.getClassByName( screenName );
+		
+		if (screenClass == null)
+			return;
+		
+		screenTransitionManager.gotoScreen( screenClass, transition );
+	}
+	
+	public function goBack(?transition:AScreenTransition):Void
+	{
+		var screenId = screenHistory.stepBack();
+		gotoScreenById( screenId, (transition == null) ? defaultScreenTransition : transition );
+	}
+	
+	public function goForward(?transition:AScreenTransition):Void
+	{
+		var screenId = screenHistory.stepForward();
+		gotoScreenById( screenId, (transition == null) ? defaultScreenTransition : transition );
+	}
+	
+	// UTILITY METHODS
 	
 	function disposeOfCurrentScreen() 
 	{
 		currentScreen.onRemove();
-		currentScreen.removeAllListenerObjects();
-		targetDisplayObjectContainer.removeChild(currentScreen);
+		
+		if ( currentScreen.parent != null )
+			targetDisplayObjectContainer.removeChild(currentScreen);
+			
 		currentScreen = null;
 	}
+	
 	private function createScreenInstance(screenClass:Class<AScreen>):AScreen
 	{
 		var screenInstance:AScreen = Type.createInstance(screenClass, []);
 		screenInstance.screenWidth = width;
 		screenInstance.screenHeight = height;
-		screenInstance.managerRef = this;
+		screenInstance.screenManager = this;
 		
 		return screenInstance;
 	}
 	
-	private function gotoScreen(screenClass:Class<AScreen>, screenID:Int, transition:AScreenTransaction, transactionTime:Int = 0, useHistory:Bool = true)
+	public function activateScreen(screenInstance:AScreen, addToDisplayList:Bool = true):Void
 	{
-		if (useHistory == true)
-			historyIDArray.push(screenID);
-		
-		// if going to another screen before the previous transition has finished, - stop the timer
-		if (t != null)
-			t.stop();
-		
-		// remove all event listeners from current screen
-		currentScreen.removeAllListenerObjects();
-		
-		// make the new screen
-		var nextScreen:AScreen = createScreenInstance(screenClass);
-		targetDisplayObjectContainer.addChild(nextScreen);
-		
-		if (transactionTime <= 0)
+		if ( screenInstance.isInited == false )
 		{
-			disposeOfCurrentScreen();
-			currentScreen = nextScreen;
-			targetDisplayObjectContainer.addChild(nextScreen);
-			nextScreen.onInit();
+			screenInstance.isInited = true;
+			screenInstance.onInit();
 		}
-		else
+		else if ( screenInstance.isActive == false )
 		{
-			nextScreen.visible = false;
-			
-			t = new haxe.Timer(transactionTime);
-			t.run = function():Void
-			{
-				disposeOfCurrentScreen();
-				currentScreen = nextScreen;
-				targetDisplayObjectContainer.addChild(nextScreen);
-				
-				if (transition == null)
-					nextScreen.onInit();
-				else
-					nextScreen.enableAllListenerObjects();
-				nextScreen.visible = true;
-				t.stop();
-			};
-			
-			if (transition != null)
-			{
-				currentTransition = transition;
-				currentTransition.screenRefA = currentScreen;
-				currentTransition.screenRefB = nextScreen;
-				currentTransition.transationTime = transactionTime;
-				currentTransition.targetHolder = targetDisplayObjectContainer;
-				
-				currentTransition.init(true);
-			}
+			screenInstance.isActive = true;
+			screenInstance.onActivate();
 		}
+		
+		if ( addToDisplayList == true )
+			targetDisplayObjectContainer.addChild( screenInstance );
+	}
+	
+	public function deactivateScreen(screenInstance:AScreen, removeFromDisplayList:Bool = true):Void
+	{
+		if ( screenInstance.isActive == false )
+		return;
+		
+		screenInstance.isActive = false;
+		screenInstance.removeAllListenerObjects();
+		
+		if ( removeFromDisplayList == true )
+			targetDisplayObjectContainer.removeChild( screenInstance );
+			
+		screenInstance.onDeactivate();
 	}
 	
 	// EVENT HANDLERS
@@ -160,6 +164,28 @@ class ScreenManager
 			return;
 		
 		currentScreen.onResize();
+	}
+	
+	// GETTERS AND SETTERS
+	
+	private function set_width(value:Int):Int
+	{
+		width = value;
+		
+		if ( currentScreen != null )
+			currentScreen.onResize();
+		
+		return width;
+	}
+	
+	private function set_height(value:Int):Int
+	{
+		height = value;
+		
+		if ( currentScreen != null )
+			currentScreen.onResize();
+			
+		return height;
 	}
 	
 }      

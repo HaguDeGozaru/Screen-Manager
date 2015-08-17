@@ -1,8 +1,8 @@
 package src.screens;
 import com.creativemage.screenManager.AScreen;
-import com.creativemage.screenManager.transaction.transactions.ColorFade;
-import com.creativemage.screenManager.transaction.transactions.ColorFade.FadeOption;
-import com.creativemage.screenManager.transaction.transactions.SlideTransaction;
+import com.creativemage.screenManager.transitionEffect.transitions.ColorFade;
+import com.creativemage.screenManager.transitionEffect.transitions.ColorFade.FadeOption;
+import com.creativemage.screenManager.transitionEffect.transitions.SlideTransaction;
 import openfl.Assets;
 import openfl.display.Sprite;
 import openfl.events.Event;
@@ -78,12 +78,12 @@ class ScreenB extends AScreen
 	private function onButtonAClick(e:Event):Void 
 	{
 		// I want to change screens without animation, so no parameters specified
-		gotoScreenByName( ScreenList.SCREEN_A );
+		gotoScreenByName( ScreenList.SCREEN_A, new ColorFade( 0x00, 500, FadeOption.FadeInOnly ) );
 	}
 	
 	private function onButtonCClick(e:Event):Void 
 	{
-		gotoScreenByName( ScreenList.SCREEN_C, new SlideTransaction( SlideTransaction.FROM_TOP_TO_BOTTOM, SlideTransaction.SLIDE_BOTH_SCREENS), 1000 );
+		gotoScreenByName( ScreenList.SCREEN_B, new ColorFade( 0x00, 1000, FadeOption.FadeInOut ) );
 	}
 	
 }

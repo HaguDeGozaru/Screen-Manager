@@ -1,6 +1,6 @@
 package com.creativemage.screenManager;
 
-import com.creativemage.screenManager.transaction.AScreenTransaction;
+import com.creativemage.screenManager.transitionEffect.AScreenTransition;
 import flash.display.Sprite;
 import flash.errors.Error;
 import flash.events.Event;
@@ -13,37 +13,45 @@ import flash.events.IEventDispatcher;
 
 class AScreen extends Sprite
 {
-	private var listenerObjectArray:Array<ScreenEventListenerObject> = [];
-	private var listenersEnabled:Bool = true;
-	
 	public var screenWidth:Int;
 	public var screenHeight:Int;
 	
-	public var managerRef:ScreenManager;
+	private var listenerObjectArray:Array<ScreenEventListenerObject> = [];
+	private var listenersEnabled:Bool = true;
 	
-	public var isInited:Bool = false;
+	private var screenManager:ScreenManager;
+	
+	private var isInited:Bool = false;
+	private var isActive:Bool = true;
 
 	public function new() 
 	{
 		super();
 	} 
 	
-	private function gotoScreenByID(screenID:Int, ?transition:AScreenTransaction, ?transactionTime:Int = 0 ):Void
+	// SCREEN NAVIGATION
+	private function gotoScreenByID(screenID:Int, ?transition:AScreenTransition):Void
 	{
-		managerRef.gotoScreenByID(screenID, transition, transactionTime);
+		screenManager.gotoScreenById(screenID, transition);
 	}
 	
-	private function gotoScreenByName(screenName:String, ?transition:AScreenTransaction, ?transactionTime:Int = 0):Void
+	private function gotoScreenByName(screenName:String, ?transition:AScreenTransition):Void
 	{
-		managerRef.gotoScreenByName(screenName, transition, transactionTime);
+		screenManager.gotoScreenByName(screenName, transition);
 	}
 	
-	private function goBack():Void
+	private function goBack(?transition:AScreenTransition):Void
 	{
-		managerRef.goBack();
+		screenManager.goBack(transition);
 	}
 	
-	private function addScreenListener(targetObject:Dynamic, listenerType:String, handlerFuntion:Event -> Void):Void
+	private function goForward(?transition:AScreenTransition):Void
+	{
+		screenManager.goForward(transition);
+	}
+	
+	// EVENT LISTENER UTILITIES
+	private function addScreenListener(targetObject:IEventDispatcher, listenerType:String, handlerFuntion:Event -> Void):Void
 	{
 		targetObject.addEventListener(listenerType, handlerFuntion);
 		
@@ -134,24 +142,56 @@ class AScreen extends Sprite
 		}
 	}
 	
+	// EVENT HANDLERS
+	
+	/**
+	 * This method is called when the screen is being initialized for the first time.
+	 * Use this method as your constructor if you plan to use screenWidth/screenHeight, use screen history or screen navigation.
+	 */
+	private function onInit():Void
+	{
+		throw new Error("This method needs to be overriden");
+	}
+	
+	/**
+	 * This method is called when the screen is being activated. This will only trigger if the screen was de-activated before that.
+	 * Otherwise the `onInit()` method will trigger
+	 */
+	private function onActivate():Void
+	{
+		
+	}
+	
+	/**
+	 * This method is called when the screen is being de-activated, but not completely removed from memory
+	 */
+	private function onDeactivate():Void
+	{
+		
+	}
+	
+	/**
+	 * This method is called when the transition effect is over. This is a good point to start animations var performance-heavy visual effects
+	 */
 	private function onScreenTransitionFinish():Void
 	{
 		
 	}
 	
+	/**
+	 * This method is called when the stage is being resized
+	 */
 	private function onResize():Void
 	{
 		
 	}
 	
+	/**
+	 * This method is called when the screen manager is about to remove this screen
+	 */
 	private function onRemove():Void
 	{
 		
-	}
-	
-	private function onInit():Void
-	{
-		throw new Error("This method needs to be overriden");
 	}
 	
 	

@@ -9,6 +9,7 @@ class AScreenList
 {
 	public var lastSelectedID:Int;
 	private var pairList:Array<ScreenPair>;
+	private var uniqueId:Int = 0;
 
 	public function new() 
 	{
@@ -20,29 +21,36 @@ class AScreenList
 		var pair:ScreenPair = new ScreenPair();
 		pair.screenName = screenName;
 		pair.screenClass = screenClass;
+		pair.screenId = uniqueId;
 		pairList.push(pair);
+		
+		uniqueId++;
 	}
 	
 	public function getClassByID(id:Int):Class<AScreen>
 	{
-		return pairList[id].screenClass;
+		
+		for (screenPair in pairList)
+			if (screenPair.screenId == id)
+			{
+				lastSelectedID = id;
+				return screenPair.screenClass;
+			}
+			
+		throw new Error("No such screen was found in the screen list");
+		return null;
 	}
 	
 	public function getClassByName(name:String):Class<AScreen>
 	{
-		var currentPair:ScreenPair;
-		
-		for (i in 0...pairList.length)
-		{
-			currentPair = pairList[i];
-			
-			if (currentPair.screenName == name)
+		for (screenPair in pairList)
+			if (screenPair.screenName == name)
 			{
-				lastSelectedID = i;
-				return currentPair.screenClass;
+				lastSelectedID = screenPair.screenId;
+				return screenPair.screenClass;
 			}
-		}
-		throw new Error("No such screen was found in ScreenList.hx");
+		
+		throw new Error("No such screen was found in the screen list");
 		return null;
 	}
 	
@@ -51,6 +59,7 @@ class AScreenList
 private class ScreenPair
 {
 	public var screenName:String;
+	public var screenId:Int;
 	public var screenClass:Class<AScreen>;
 	
 	public function new()

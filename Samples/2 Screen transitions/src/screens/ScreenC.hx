@@ -1,8 +1,8 @@
 package src.screens;
 import com.creativemage.screenManager.AScreen;
-import com.creativemage.screenManager.transaction.transactions.ColorFade;
-import com.creativemage.screenManager.transaction.transactions.ColorFade.FadeOption;
-import com.creativemage.screenManager.transaction.transactions.SlideTransaction;
+import com.creativemage.screenManager.transitionEffect.transitions.ColorFade;
+import com.creativemage.screenManager.transitionEffect.transitions.ColorFade.FadeOption;
+import com.creativemage.screenManager.transitionEffect.transitions.SlideTransaction;
 import openfl.Assets;
 import openfl.display.Sprite;
 import openfl.events.Event;
@@ -77,12 +77,12 @@ class ScreenC extends AScreen
 	
 	private function onButtonAClick(e:Event):Void 
 	{
-		gotoScreenByName( ScreenList.SCREEN_A, new ColorFade( 0x00, FadeOption.FadeInOnly, false ), 300 );
+		gotoScreenByName( ScreenList.SCREEN_B, new ColorFade( 0x00, 1000, FadeOption.FadeInOut ) );
 	}
 	
 	private function onButtonBClick(e:Event):Void 
 	{
-		gotoScreenByName( ScreenList.SCREEN_B, new SlideTransaction(), 1000 );
+		gotoScreenByName( ScreenList.SCREEN_B, new ColorFade( 0x00, 1000, FadeOption.FadeInOut ) );
 	}
 	
 }

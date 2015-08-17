@@ -1,11 +1,11 @@
 package src.screenTransitions;
-import com.creativemage.screenManager.transaction.AScreenTransaction;
+import com.creativemage.screenManager.transitionEffect.AScreenTransition;
 
 /**
  * ...
  * @author Alex Kolpakov
  */
-class ImageFade extends AScreenTransaction
+class ImageFade extends AScreenTransition
 {
 
 	public function new(convertScreensToBitmaps:Bool = false) 
