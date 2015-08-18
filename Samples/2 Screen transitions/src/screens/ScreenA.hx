@@ -93,13 +93,13 @@ class ScreenA extends AScreen
 	private function onButtonBClick(e:Event):Void 
 	{
 		trace("button B was clicked");
-		gotoScreenByName( ScreenList.SCREEN_B );
+		gotoScreenByName( ScreenList.SCREEN_B, new ColorFade( 0x00, 1000, FadeOption.FadeInOut) );
 	}
 	
 	private function onButtonCClick(e:Event):Void 
 	{
 		trace("button C was clicked");
-		//gotoScreenByName( ScreenList.SCREEN_B, new ColorFade( 0x00, 1000, FadeOption.FadeInOut ) );
+		gotoScreenByName( ScreenList.SCREEN_B, new ColorFade( 0x00, 1000, FadeOption.FadeInOut ) );
 	}
 	
 }

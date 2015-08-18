@@ -42,9 +42,8 @@ class ScreenTransitionManager
 	private function finishTransition():Void
 	{
 		screenManager.deactivateScreen( screenA );
-		screenManager.activateScreen( screenB );
-		
 		screenManager.disposeOfCurrentScreen();
+		screenManager.activateScreen( screenB );
 		
 		screenManager.currentScreen = screenB;
 		screenManager.currentScreen.onScreenTransitionFinish();

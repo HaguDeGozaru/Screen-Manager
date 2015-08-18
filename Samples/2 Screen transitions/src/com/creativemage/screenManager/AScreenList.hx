@@ -54,6 +54,19 @@ class AScreenList
 		return null;
 	}
 	
+	public function getScreenPairByName(screenName:String) 
+	{
+		for (screenPair in pairList)
+			if (screenPair.screenName == name)
+			{
+				lastSelectedID = screenPair.screenId;
+				return screenPair;
+			}
+		
+		throw new Error("No such screen was found in the screen list");
+		return null;
+	}
+	
 }
 
 private class ScreenPair

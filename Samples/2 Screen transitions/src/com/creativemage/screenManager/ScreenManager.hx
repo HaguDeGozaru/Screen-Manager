@@ -79,16 +79,19 @@ class ScreenManager
 			return;
 		
 		screenTransitionManager.gotoScreen( screenClass, transition );
+		screenHistory.writeToHistory( screenID );
 	}
 	
 	public function gotoScreenByName(screenName:String, ?transition:AScreenTransition):Void
 	{
-		var screenClass = screenClassList.getClassByName( screenName );
+		var screenPair = screenClassList.getScreenPairByName( screenName );
+		var screenClass = screenPair.screenClass;
 		
 		if (screenClass == null)
 			return;
 		
 		screenTransitionManager.gotoScreen( screenClass, transition );
+		screenHistory.writeToHistory( screenPair.screenId );
 	}
 	
 	public function goBack(?transition:AScreenTransition):Void
@@ -132,11 +135,13 @@ class ScreenManager
 			screenInstance.isInited = true;
 			screenInstance.onInit();
 		}
-		else if ( screenInstance.isActive == false )
+		else if ( screenInstance.isActive == true )
 		{
-			screenInstance.isActive = true;
-			screenInstance.onActivate();
+			return;
 		}
+		
+		screenInstance.isActive = true;
+		screenInstance.onActivate();
 		
 		if ( addToDisplayList == true )
 			targetDisplayObjectContainer.addChild( screenInstance );
