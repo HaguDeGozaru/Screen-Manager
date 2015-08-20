@@ -57,7 +57,7 @@ class AScreenList
 	public function getScreenPairByName(screenName:String) 
 	{
 		for (screenPair in pairList)
-			if (screenPair.screenName == name)
+			if (screenPair.screenName == screenName)
 			{
 				lastSelectedID = screenPair.screenId;
 				return screenPair;

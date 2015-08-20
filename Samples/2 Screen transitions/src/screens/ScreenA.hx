@@ -1,13 +1,14 @@
 package src.screens;
 import com.creativemage.screenManager.AScreen;
 import com.creativemage.screenManager.transitionEffect.transitions.ColorFade;
-import com.creativemage.screenManager.transitionEffect.transitions.SlideTransaction;
+import com.creativemage.screenManager.transitionEffect.transitions.SlideTransition;
 import flash.events.Event;
 import openfl.Assets;
 import openfl.display.Sprite;
 import openfl.events.MouseEvent;
 import openfl.text.TextField;
 import openfl.text.TextFieldAutoSize;
+import src.screenTransitions.ImageFade;
 
 /**
  * ...
@@ -92,14 +93,12 @@ class ScreenA extends AScreen
 	
 	private function onButtonBClick(e:Event):Void 
 	{
-		trace("button B was clicked");
-		gotoScreenByName( ScreenList.SCREEN_B, new ColorFade( 0x00, 1000, FadeOption.FadeInOut) );
+		gotoScreenByName( ScreenList.SCREEN_B, new ImageFade(500) );
 	}
 	
 	private function onButtonCClick(e:Event):Void 
 	{
-		trace("button C was clicked");
-		gotoScreenByName( ScreenList.SCREEN_B, new ColorFade( 0x00, 1000, FadeOption.FadeInOut ) );
+		gotoScreenByName( ScreenList.SCREEN_C, new SlideTransition( 2000, SlideDirection.RightToLeft, SlideType.OldScreenOnly) );
 	}
 	
 }
